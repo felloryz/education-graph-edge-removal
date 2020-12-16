@@ -4,6 +4,7 @@
 typedef struct node {
     int vertice1;
     int vertice2;
+    int edge;
     struct node* next;
 } node_t;
 
@@ -12,6 +13,7 @@ void push(node_t** head, int vertice1, int vertice2) {
     if(tmp == NULL) return;
     tmp->vertice1 = vertice1;
     tmp->vertice2 = vertice2;
+    tmp->edge = 1;
     tmp->next = (*head);
     (*head) = tmp;
 }
@@ -20,12 +22,20 @@ void push(node_t** head, int vertice1, int vertice2) {
 void print_to_file(node_t* head, FILE* file) {
     fprintf(file, "graph graphname {\n");
     while(head != NULL) {
-        fprintf(file, "%d", head->vertice1);
-        if(head->vertice2 != 0) {
-            fprintf(file, " -- ");
-            fprintf(file, "%d", head->vertice2);
+        if(head->edge == 1) {
+            fprintf(file, "%d", head->vertice1);
+            if(head->vertice2 != 0) {
+                fprintf(file, " -- ");
+                fprintf(file, "%d", head->vertice2);
+            }
+            fprintf(file, ";\n");
         }
-        fprintf(file, ";\n");
+        else {
+            fprintf(file, "%d;\n", head->vertice1);
+            if(head->vertice2 != 0) {
+                fprintf(file, "%d;\n", head->vertice2);
+            }
+        }
         head = head->next;
     }
     fprintf(file, "}");
@@ -85,7 +95,7 @@ int vertice_sort(node_t* head) {
     int n = 0;
     int k = 0;
     int y;
-    int arr2[2][k];
+
     node_t* tmp = head;
     node_t* tmp1 = head;
     node_t* tmp2 = head;
@@ -96,6 +106,7 @@ int vertice_sort(node_t* head) {
     }
 
     int arr[n*2];
+
     for(int i = 0; i < n*2; i = i + 2) {
         arr[i] = tmp->vertice1;
         arr[i+1] = tmp->vertice2;
@@ -114,7 +125,10 @@ int vertice_sort(node_t* head) {
         if(arr[i] != -1 && arr[i] != 0) k++;
     }
 
+    //printf("k = %d\n\n", k);
+
     y = k;
+	int arr2[2][k];
     k = 0;
     for(int i = 0; i < n*2; i++) {
         if(arr[i] != -1 && arr[i] != 0) {
@@ -126,16 +140,17 @@ int vertice_sort(node_t* head) {
 
     for(int j = 0; j < y; j++) {
         while(tmp1 != NULL) {
-            if(arr2[1][j] == tmp1->vertice1) {
+            if((arr2[1][j] == tmp1->vertice1) && (tmp1->vertice2 != 0) && (tmp1->edge == 1)) {
                 arr2[2][j]++;
             }
-            else if(arr2[1][j] == tmp1->vertice2) {
+            else if((arr2[1][j] == tmp1->vertice2) && (tmp1->vertice2 != 0) && (tmp1->edge == 1)) {
                 arr2[2][j]++;
             }
             tmp1 = tmp1->next;
         }
         tmp1 = tmp2;
     }
+
 
     for(int j = 1; j < k; j++)
         for(int i = 0; i < k-1; i++)
@@ -154,40 +169,10 @@ int vertice_sort(node_t* head) {
     return y;
 }
 
-/* УДАЛЕНИЕ ПЕРВОЙ НОДЫ */
-void pop(node_t** head) {
-    (*head) = (*head)->next;
-}
-
-/* УДАЛЕНИЕ НОДЫ ПО СЧЁТУ */
-void delete_n(node_t** thead, node_t* head, int n) {
-    node_t *tmp = head;
-    int count = 1;
-
-    if(n == 1) {
-        pop(thead);
-        return;
-    }
-
-    while(head != NULL) {
-        if(n == count+1) {
-            node_t* p = head;
-            head = head->next;
-            p->next = head->next;
-            head->next = NULL;
-            head = p->next;
-        }
-        else {
-            head = head->next;
-        }
-        count++;
-    }
-    head = tmp;
-}
 
 /* УДАЛЕНИЕ ОПРЕДЕЛЕННОГО РЕБРА */
 void edge_remove(node_t** thead, node_t* head) {
-    node_t *tmp = head;
+    //node_t *tmp = head;
     char c;
     int a = 0;
     int b = 0;
@@ -233,22 +218,20 @@ void edge_remove(node_t** thead, node_t* head) {
         n++;
         if(head->vertice1 == a && head->vertice2 == b) {
             flag = 1;
-            break;
+            head->edge = 0;
+
         }
-        if(head->vertice1 == b && head->vertice2 == a) {
+        else if(head->vertice1 == b && head->vertice2 == a) {
             flag = 1;
-            break;
+            head->edge = 0;
+
         }
         head = head->next;
     }
 
     if(flag == 0) {
-        printf("There is no such edge");
+        printf("There is no such edge\n\n");
     }
-    else {
-        delete_n(thead, tmp, n);
-    }
-
 }
 
 int main(void)
